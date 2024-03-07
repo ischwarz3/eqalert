@@ -34,7 +34,7 @@ jobs:
               poetry run pip install --upgrade wheel
               poetry run pip install playsound
         - name: Install Python deps
-          run: poetry install --wihout dev
+          run: poetry install --without dev
         - name: Build package
           run: poetry build
         - name: Store build artifact
