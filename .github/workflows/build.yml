@@ -41,6 +41,8 @@ jobs:
           uses: actions/upload-artifact@v4
           with:
             name: eqalert-bin
-            path: dist/*.tar.gz
+            path: |
+              dist/eqalert-*.tar.gz
+              dist/eqalert-*.whl
             retention-days: 1
       
