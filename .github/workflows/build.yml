@@ -19,18 +19,20 @@ jobs:
         - uses: actions/setup-python@v4
           with:
             python-version: ${{ matrix.python-version }}
-        - name: Manual pip installs
-          run: |
-              pip install --upgrade pip
-              pip install --upgrade wheel
-              pip install playsound 
-        - name: Run image
+        - name: Install poetry
           uses: abatilo/actions-poetry@v2
           with:
             poetry-version: ${{ matrix.poetry-version }}
-        - name: View poetry --help
-          run: poetry --help
-          
+        - name: Manual pip installs
+          run: |
+              poetry run pip install --upgrade pip
+              poetry run pip install --upgrade wheel
+              poetry run pip install playsound
+        - name: Define a cache for the virtual environment based on the dependencies lock file
+          uses: actions/cache@v3
+          with:
+            path: ./.venv
+            key: venv-${{ hashFiles('poetry.lock') }}
         - name: Build package
           run: poetry build
         - name: Store build artifact
