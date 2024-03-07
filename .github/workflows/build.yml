@@ -7,22 +7,30 @@ permissions:
 
 jobs:
     build:
-      runs-on: ubuntu-latest
+      strategy:
+        fail-fast: false
+        matrix:
+          python-version: ["3.9.16"]
+          poetry-version: ["1.7.1"]
+          os: [ubuntu-latest]
+      runs-on: ${{ matrix.os }}
       steps:
-        - uses: actions/checkout@v3
-        - name: Set up Python
-          uses: actions/setup-python@v3
+        - uses: actions/checkout@v4
+        - uses: actions/setup-python@v4
           with:
-            python-version: '3.9.16'
-        - name: Install dependencies
+            python-version: ${{ matrix.python-version }}
+        - name: Manual pip installs
           run: |
-            # This can be removed once playsound package is removed, it doesn't play nice with poetry
-            pip install --upgrade wheel
-            pip install playsound 
-
-            pip install poetry
+              pip install --upgrade pip
+              pip install --upgrade wheel
+              pip install playsound 
+        - name: Run image
+          uses: abatilo/actions-poetry@v2
+          with:
+            poetry-version: ${{ matrix.poetry-version }}
+        - name: View poetry --help
+          run: poetry --help
           
-            poetry install
         - name: Build package
           run: poetry build
         - name: Store build artifact
