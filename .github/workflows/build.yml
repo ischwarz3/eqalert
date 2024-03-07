@@ -17,8 +17,9 @@ jobs:
         - name: Install dependencies
           run: |
             # This can be removed once playsound package is removed, it doesn't play nice with poetry
+            pip install --upgrade wheel
             pip install playsound 
-            
+
             pip install poetry
           
             poetry install
