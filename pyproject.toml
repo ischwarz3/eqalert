@@ -5,6 +5,9 @@ description = "Configurable and Context Driven Project 1999 Log Parser"
 authors = ["M Geitz <git@geitz.xyz>"]
 license = "GPL2"
 readme = "README.md"
+packages  = [
+    { include = "eqa" }
+]
 
 [tool.poetry.dependencies]
 python = "~3.9.2"
