@@ -1,0 +1,29 @@
+name: Build eqalert
+
+on: push
+
+permissions:
+    contents: read
+
+jobs:
+    build:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+        - name: Set up Python
+          uses: actions/setup-python@v3
+          with:
+            python-version: '3.9.16'
+        - name: Install dependencies
+          run: |
+            pip install poetry
+            poetry install
+        - name: Build package
+          run: poetry build
+        - name: Store build artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: eqalert-bin
+            path: dist/*.tar.gz
+            retention-days: 1
+      
