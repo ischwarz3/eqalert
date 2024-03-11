@@ -1,4 +1,4 @@
-from eqa.lib.config import generate_spell_timer_json, generate_new_spell_timer_json
+from eqa.lib.config import generate_spell_timer_json
 from eqa.lib.consts import VALID_SPELLS
 
 sample_spell_lines = [
@@ -14,103 +14,104 @@ sample_spell_lines = [
 ]
 
 def test_generate_spell_timer_json():
+    expected = {
+        'hash': 'abcd1234',
+        'spells': {
+            'augmentation': {
+                'cast_time': '5.0',
+                'duration': '270',
+                'formula': '3',
+            },
+            'cleanse': {
+                'cast_time': '0.0',
+                'duration': '0',
+                'formula': '0',
+            },
+            'hymn_of_restoration': {
+                'cast_time': '3.0',
+                'duration': '3',
+                'formula': '5',
+            },
+            'ignite_blood': {
+                'cast_time': '4.0',
+                'duration': '21',
+                'formula': '1',
+            },
+            'summon_corpse': {
+                'cast_time': '5.0',
+                'duration': '0',
+                'formula': '0',
+            },
+            'summon_waterstone': {
+                'cast_time': '4.0',
+                'duration': '0',
+                'formula': '0',
+            },
+            'superior_healing': {
+                'cast_time': '4.5',
+                'duration': '0',
+                'formula': '0',
+            },
+        },
+        # 'version': '1.0',
+    }
+    generate_spell_timer_file = False
     sample_hash = 'abcd1234'
     valid_spells = VALID_SPELLS
-
-    expected = {
-    'hash': 'abcd1234',
-    'spells': {
-        'augmentation': {
-            'cast_time': '5.0',
-            'duration': '270',
-            'formula': '3',
-        },
-        'cleanse': {
-            'cast_time': '0.0',
-            'duration': '0',
-            'formula': '0',
-        },
-        'hymn_of_restoration': {
-            'cast_time': '3.0',
-            'duration': '3',
-            'formula': '5',
-        },
-        'ignite_blood': {
-            'cast_time': '4.0',
-            'duration': '21',
-            'formula': '1',
-        },
-        'summon_corpse': {
-            'cast_time': '5.0',
-            'duration': '0',
-            'formula': '0',
-        },
-        'summon_waterstone': {
-            'cast_time': '4.0',
-            'duration': '0',
-            'formula': '0',
-        },
-        'superior_healing': {
-            'cast_time': '4.5',
-            'duration': '0',
-            'formula': '0',
-        },
-    },
-}
-    actual = generate_spell_timer_json(sample_hash, sample_spell_lines, valid_spells)
+    version = "1.0"
+    actual = generate_spell_timer_json(generate_spell_timer_file, sample_hash, sample_spell_lines, valid_spells, version)
 
     assert expected == actual
 
 def test_generate_new_spell_timer_json():
-    generate_spell_timer_file = True
-    sample_hash = 'abcd1234'
-    valid_spells = VALID_SPELLS
-    version = "1.0"
-
     # Notes: 
     #   duration 0 spells are excluded when run in "new" mode
     #   version key added
     expected = {
-    'hash': 'abcd1234',
-    'spells': {
-        'augmentation': {
-            'cast_time': '5.0',
-            'duration': '270',
-            'formula': '3',
+        'hash': 'abcd1234',
+        'spells': {
+            'augmentation': {
+                'cast_time': '5.0',
+                'duration': '270',
+                'formula': '3',
+            },
+            # 'cleanse': {
+            #     'cast_time': '0.0',
+            #     'duration': '0',
+            #     'formula': '0',
+            # },
+            'hymn_of_restoration': {
+                'cast_time': '3.0',
+                'duration': '3',
+                'formula': '5',
+            },
+            'ignite_blood': {
+                'cast_time': '4.0',
+                'duration': '21',
+                'formula': '1',
+            },
+            # 'summon_corpse': {
+            #     'cast_time': '5.0',
+            #     'duration': '0',
+            #     'formula': '0',
+            # },
+            # 'summon_waterstone': {
+            #     'cast_time': '4.0',
+            #     'duration': '0',
+            #     'formula': '0',
+            # },
+            # 'superior_healing': {
+            #     'cast_time': '4.5',
+            #     'duration': '0',
+            #     'formula': '0',
+            # },
         },
-        # 'cleanse': {
-        #     'cast_time': '0.0',
-        #     'duration': '0',
-        #     'formula': '0',
-        # },
-        'hymn_of_restoration': {
-            'cast_time': '3.0',
-            'duration': '3',
-            'formula': '5',
-        },
-        'ignite_blood': {
-            'cast_time': '4.0',
-            'duration': '21',
-            'formula': '1',
-        },
-        # 'summon_corpse': {
-        #     'cast_time': '5.0',
-        #     'duration': '0',
-        #     'formula': '0',
-        # },
-        # 'summon_waterstone': {
-        #     'cast_time': '4.0',
-        #     'duration': '0',
-        #     'formula': '0',
-        # },
-        # 'superior_healing': {
-        #     'cast_time': '4.5',
-        #     'duration': '0',
-        #     'formula': '0',
-        # },
-    },
-    'version': '1.0',
-}
-    actual = generate_new_spell_timer_json(generate_spell_timer_file, sample_hash, sample_spell_lines, valid_spells, version)
+        'version': '1.0',
+    }
+    generate_spell_timer_file = True
+    sample_hash = 'abcd1234'
+    valid_spells = VALID_SPELLS
+    version = "1.0"
+    actual = generate_spell_timer_json(generate_spell_timer_file, sample_hash, sample_spell_lines, valid_spells, version)
 
     assert expected == actual
