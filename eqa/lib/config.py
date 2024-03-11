@@ -13952,39 +13952,7 @@ def update_spell_timers(data_path, eq_spells_file_path, version):
                     json.dump(spell_timer_json, json_data, sort_keys=True, indent=2)
                     json_data.close()
         else:
-            print("Generating new spell-timers.json. This may take a minute . . .")
-            # Bootstrap new spell-timers.json
-            spell_timer_json = {"spells": {}, "hash": spells_hash}
-
-            # Read spells_us.txt line
-            for line in eq_spells_file_lines:
-                modified_line = line.split("^")
-
-                ## Relevant values
-                spell_name = modified_line[1]
-                spell_cast_time = str(int(modified_line[13]) / 1000)
-                spell_buff_duration = modified_line[17]
-                spell_buffdurationformula = modified_line[16]
-
-                ## Clean spell name
-                line_type_spell_name = re.sub(
-                    r"[^a-z\s]", "", spell_name.lower()
-                ).replace(" ", "_")
-
-                if line_type_spell_name in valid_spells:
-                    spell_timer_json["spells"].update(
-                        {
-                            line_type_spell_name: {
-                                "cast_time": spell_cast_time,
-                                "duration": spell_buff_duration,
-                                "formula": spell_buffdurationformula,
-                            }
-                        }
-                    )
-
-                json_data = open(spell_timer_file, "w")
-                json.dump(spell_timer_json, json_data, sort_keys=True, indent=2)
-                json_data.close()
+          generate_spell_timer_json(spells_hash, eq_spells_file_lines, valid_spells, spell_timer_file)    
 
     except Exception as e:
         eqa_settings.log(
@@ -13994,6 +13962,40 @@ def update_spell_timers(data_path, eq_spells_file_path, version):
             + str(e)
         )
 
+def generate_spell_timer_json(spells_hash, eq_spells_file_lines, valid_spells, spell_timer_file):
+  print("Generating new spell-timers.json. This may take a minute . . .")
+  # Bootstrap new spell-timers.json
+  spell_timer_json = {"spells": {}, "hash": spells_hash}
+
+  # Read spells_us.txt line
+  for line in eq_spells_file_lines:
+      modified_line = line.split("^")
+
+      ## Relevant values
+      spell_name = modified_line[1]
+      spell_cast_time = str(int(modified_line[13]) / 1000)
+      spell_buff_duration = modified_line[17]
+      spell_buffdurationformula = modified_line[16]
+
+      ## Clean spell name
+      line_type_spell_name = re.sub(
+          r"[^a-z\s]", "", spell_name.lower()
+      ).replace(" ", "_")
+
+      if line_type_spell_name in valid_spells:
+          spell_timer_json["spells"].update(
+              {
+                  line_type_spell_name: {
+                      "cast_time": spell_cast_time,
+                      "duration": spell_buff_duration,
+                      "formula": spell_buffdurationformula,
+                  }
+              }
+          )
+
+      json_data = open(spell_timer_file, "w")
+      json.dump(spell_timer_json, json_data, sort_keys=True, indent=2)
+      json_data.close()
 
 def set_last_state(state, configs):
     """Save state to config"""
