@@ -12404,9 +12404,8 @@ def update_spell_timers(data_path, eq_spells_file_path, version):
         spell_timer_file = data_path + spell_timers_file_name
 
         # Read spells_us.txt
-        eq_spells_file = open(eq_spells_file_path, "r")
-        eq_spells_file_lines = eq_spells_file.readlines()
-        eq_spells_file.close()
+        with open(eq_spells_file_path, "r") as eq_spells_file:
+            eq_spells_file_lines = eq_spells_file.readlines()
 
         # Calculate file hash
         BLOCKSIZE = 65536
@@ -12416,7 +12415,6 @@ def update_spell_timers(data_path, eq_spells_file_path, version):
             while len(buf) > 0:
                 file_hash.update(buf.encode("utf-8"))
                 buf = spells_file.read(BLOCKSIZE)
-        spells_file.close()
         spells_hash = file_hash.hexdigest()
 
         # Check spell-timers.json version
