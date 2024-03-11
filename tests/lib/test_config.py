@@ -59,6 +59,7 @@ def test_generate_spell_timer_json():
     sample_hash = 'abcd1234'
     valid_spells = VALID_SPELLS
     version = "1.0"
+
     actual = generate_spell_timer_json(generate_spell_timer_file, sample_hash, sample_spell_lines, valid_spells, version)
 
     assert expected == actual
@@ -112,6 +113,7 @@ def test_generate_new_spell_timer_json():
     sample_hash = 'abcd1234'
     valid_spells = VALID_SPELLS
     version = "1.0"
+
     actual = generate_spell_timer_json(generate_spell_timer_file, sample_hash, sample_spell_lines, valid_spells, version)
 
     assert expected == actual

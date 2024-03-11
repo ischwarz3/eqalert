@@ -8,6 +8,10 @@ dist/*
 eqalert.egg-info/*
 *.pyc
 
+# coverage
+coverage/*
+.coverage
+
 util/spells_us.txt
 util/spells_us.json
 MANIFEST
