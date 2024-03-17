@@ -12433,7 +12433,7 @@ def update_spell_timers(data_path, eq_spells_file_path, version):
             else:
                 generate_spell_timer_file = False
 
-            spell_timer_json = generate_spell_timer_json(generate_spell_timer_file, spells_hash, eq_spells_file_lines, VALID_SPELLS, spell_timer_file, version)
+            spell_timer_json = generate_spell_timer_json(generate_spell_timer_file, spells_hash, eq_spells_file_lines, VALID_SPELLS, version)
 
             with open(spell_timer_file, "w") as json_data:
                 json.dump(spell_timer_json, json_data, sort_keys=True, indent=2)
