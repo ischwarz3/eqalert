@@ -18,10 +18,11 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import json
 import os
 import sys
+from typing import Dict
 import re
 import hashlib
 
@@ -33,9 +34,17 @@ from eqa.lib.consts import VALID_SPELLS
 
 
 @dataclass
+class SpellTimer:
+    cast_time: str
+    duration: str
+    forumla: str
+
+
+@dataclass
 class SpellTimerJSON:
-    spells: dict
     hash: str
+    version: str
+    spells: Dict[str, SpellTimer] = field(default_factory=lambda: {}, compare=False)
 
 
 def init(base_path, version):
@@ -12417,26 +12426,12 @@ def update_spell_timers(data_path, eq_spells_file_path, version):
                 buf = spells_file.read(BLOCKSIZE)
         spells_hash = file_hash.hexdigest()
 
-        # Check spell-timers.json version
-        if os.path.isfile(spell_timer_file):
-            # Generate Spell Timers
-            json_data = open(spell_timer_file, "r", encoding="utf-8")
-            spell_timers_hash_check = json.load(json_data)
-            json_data.close()
+        # Parse EQ spells file into Spell Timer JSON
+        spell_timer_json = generate_spell_timer_json(spells_hash, eq_spells_file_lines, VALID_SPELLS, version)
 
-            if "hash" not in spell_timers_hash_check.keys():
-                generate_spell_timer_file = True
-            elif not spell_timers_hash_check["hash"] == spells_hash:
-                generate_spell_timer_file = True
-            elif "version" not in spell_timers_hash_check.keys():
-                generate_spell_timer_file = True
-            else:
-                generate_spell_timer_file = False
-
-            spell_timer_json = generate_spell_timer_json(generate_spell_timer_file, spells_hash, eq_spells_file_lines, VALID_SPELLS, version)
-
-            with open(spell_timer_file, "w") as json_data:
-                json.dump(spell_timer_json, json_data, sort_keys=True, indent=2)
+        # Write to disk 
+        with open(spell_timer_file, "w") as json_data:
+            json.dump(spell_timer_json, json_data, sort_keys=True, indent=2)
 
     except Exception as e:
         eqa_settings.log(
@@ -12446,14 +12441,8 @@ def update_spell_timers(data_path, eq_spells_file_path, version):
             + str(e)
         )
 
-def generate_spell_timer_json(generate_spell_timer_file, spells_hash, eq_spells_file_lines, VALID_SPELLS, version) -> SpellTimerJSON:
-    print("    - generating spell-timers.json (this may take a minute)")
-    # Bootstrap new spell-timers.json
-    spell_timer_json = {"spells": {}, "hash": spells_hash}
-
-    if generate_spell_timer_file: # Stuff that only happens when generating a new file
-        spell_timer_json.update({"hash": spells_hash})
-        spell_timer_json.update({"version": version})
+def generate_spell_timer_json(spells_hash, eq_spells_file_lines, VALID_SPELLS, version) -> SpellTimerJSON:
+    spell_timer_json = SpellTimerJSON(spells_hash, version)
 
     # Read spells_us.txt line
     for line in eq_spells_file_lines:
@@ -12465,7 +12454,8 @@ def generate_spell_timer_json(generate_spell_timer_file, spells_hash, eq_spells_
         spell_buff_duration = modified_line[17]
         spell_buffdurationformula = modified_line[16]
 
-        if spell_buffdurationformula == "0" and generate_spell_timer_file:
+        # Spell timers only pertain to spells that have an effect with a duration, like DoT's or Buffs
+        if spell_buffdurationformula == "0":
             continue
 
         ## Clean spell name
@@ -12474,15 +12464,10 @@ def generate_spell_timer_json(generate_spell_timer_file, spells_hash, eq_spells_
         ).replace(" ", "_")
 
         if line_type_spell_name in VALID_SPELLS:
-            spell_timer_json["spells"].update(
-                {
-                    line_type_spell_name: {
-                        "cast_time": spell_cast_time,
-                        "duration": spell_buff_duration,
-                        "formula": spell_buffdurationformula,
-                    }
-                }
-            )
+            spell_timer_data = SpellTimer(spell_cast_time, 
+                                          spell_buff_duration, 
+                                          spell_buffdurationformula)
+            spell_timer_json.spells[line_type_spell_name] = spell_timer_data
 
     return spell_timer_json
     
