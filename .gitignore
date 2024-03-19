@@ -1,7 +1,7 @@
 # IDE junk
 .vscode
 
-# build/package
+# Build
 .venv/*
 build/*
 dist/*
@@ -9,7 +9,7 @@ eqalert.egg-info/*
 *.pyc
 Pipfile
 
-# coverage
+# Coverage
 coverage/*
 .coverage
 
