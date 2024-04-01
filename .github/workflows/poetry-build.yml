@@ -1,6 +1,8 @@
 name: Poetry Build
 
-on: push
+on:
+  workflow_run:
+    workflows: ["Test"]
 
 permissions:
     contents: read

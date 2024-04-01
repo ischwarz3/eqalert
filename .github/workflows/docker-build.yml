@@ -1,12 +1,15 @@
 name: Docker Build
 
-on: push
+on:
+  workflow_run:
+    workflows: ["Test"]
 
 permissions:
     contents: read
 
 jobs:
     docker-build:
+    
       strategy:
         fail-fast: false
       runs-on: [ubuntu-latest]
