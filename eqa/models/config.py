@@ -26,7 +26,7 @@ class CharacterLog(BaseModel):
     server: str
 
 
-class Character(BaseModel):
+class Characters(BaseModel):
     character_logs: Optional[Dict[str, CharacterLog]]
 
 
@@ -101,7 +101,7 @@ class Timers(BaseModel):
     spell: SpellTimer
 
 
-class Settings(BaseModel):
+class SettingData(BaseModel):
     character_mention_alert: BaseFlag
     consider_eval: BaseFlag
     debug_mode: BaseFlag
@@ -115,9 +115,9 @@ class Settings(BaseModel):
     timers: Timers
 
 
-class Setting(BaseModel):
+class Settings(BaseModel):
     last_state: LastState
-    settings: Settings
+    settings: SettingData
     version: str
 
 
@@ -146,7 +146,7 @@ class LineAlertFile(BaseModel):
 
 
 class Config(BaseModel):
-    characters: Optional[Character]
-    settings: Optional[Setting]
+    characters: Optional[Characters]
+    settings: Optional[Settings]
     zones: Optional[Zones]
     line_alerts: Optional[Dict[str, LineAlertFile]]
