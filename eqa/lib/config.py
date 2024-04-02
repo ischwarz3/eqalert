@@ -18,13 +18,15 @@
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict
 import json
 import os
 from pathlib import Path
-from typing import Dict
+from typing import Type
 import re
 import hashlib
+
+from pydantic import ValidationError
 
 import eqa.lib.state as eqa_state
 import eqa.lib.struct as eqa_struct
@@ -52,6 +54,7 @@ from eqa.const.data_spell_items import NEW_SPELL_ITEMS_DATA
 from eqa.const.data_spell_lines import NEW_SPELL_LINES_DATA
 from eqa.const.validspells import VALID_SPELLS
 from eqa.lib.util import handleException, JSONFileHandler
+from eqa.models.config import Characters, Config, Settings, Zones
 from eqa.models.data import SpellTimer, SpellTimerJSON
 
 
@@ -70,20 +73,34 @@ def init(base_path, version):
         handleException(e, "config init", e_print=False, e_log=True)
 
 
-def read_config_files(config_dir: Path, config_files, file_handler=JSONFileHandler):
-    config_filetype_ext = ".json"
-
-    configs = {}
-
-    for config_file in config_files:
-        config_full_filepath = config_dir / f"{config_file}{config_filetype_ext}"
-
-        config_file_handler = file_handler(config_full_filepath)
-        config_file_data = config_file_handler.read()
-
-        configs[config_file] = eqa_struct.config_file(
-            config_file, str(config_full_filepath), config_file_data
+def read_config_file(
+    config_dir: Path,
+    config_file: str,
+    config_class: Type[Characters] | Type[Settings] | Type[Zones],
+    file_handler=JSONFileHandler,
+) -> Characters | Settings | Zones | None:
+    config_full_filepath = config_dir / f"{config_file}.json"
+    config_file_handler = file_handler(config_full_filepath)
+    config_file_data = config_file_handler.read()
+    try:
+        return config_class(**config_file_data)
+    except ValidationError as e:
+        handleException(
+            e,
+            e_desc=f"Unable to load type:{config_file} as model:{config_class.__name__} from file:{config_full_filepath}",
+            e_print=True,
+            e_log=True,
         )
+
+
+def read_config_files(config_dir: Path, file_handler=JSONFileHandler) -> Config:
+
+    configs = Config(
+        characters=read_config_file(config_dir, "characters", Characters, file_handler),  # type: ignore
+        settings=read_config_file(config_dir, "settings", Settings, file_handler),  # type: ignore
+        zones=read_config_file(config_dir, "zones", Zones, file_handler),  # type: ignore
+        line_alerts=None,
+    )
 
     return configs
 
@@ -123,8 +140,7 @@ def combine_config_files(configs, line_alerts):
 def read_config(base_path, file_handler=JSONFileHandler):
     try:
         config_dir = Path(base_path) / "config"
-        config_files = ["characters", "settings", "zones"]
-        config_data = read_config_files(config_dir, config_files, file_handler)
+        config_data = read_config_files(config_dir, file_handler)
 
         line_alert_dir = config_dir / "line-alerts"
         line_alert_files = [

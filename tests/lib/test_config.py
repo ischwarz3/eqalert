@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 import pytest
@@ -6,12 +7,34 @@ from eqa.lib.config import (
     generate_spell_timer_json,
     SpellTimerJSON,
     SpellTimer,
+    read_config_file,
     read_config_files,
     read_line_alert_files,
 )
 from eqa.lib.struct import config_file, configs
 from eqa.lib.util import JSONFileHandler
 from eqa.const.validspells import VALID_SPELLS
+from eqa.models.config import (
+    CharacterState,
+    Characters,
+    CharacterLog,
+    EncounterParsing,
+    LastState,
+    LocalTTS,
+    MobTimer,
+    PlayerData,
+    RaidMode,
+    SettingData,
+    Settings,
+    Speech,
+    SpellTimerConfig,
+    SpellTimerFilter,
+    SystemPaths,
+    Timers,
+    Zone,
+    Zones,
+)
+from eqa.models.util import BaseFlag, Location
 
 sample_spell_lines = [
     "0^^BLUE_TRAIL^^^^^^^0^0^0^0^0^0^0^7^65^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^-1^-1^-1^-1^1^1^1^1^-1^-1^-1^-1^100^100^100^100^100^100^100^100^100^100^100^100^0^0^0^0^254^254^254^254^254^254^254^254^254^254^254^254^2^0^52^-1^0^0^255^255^255^255^255^255^255^255^255^255^255^255^255^255^255^255^44^13^0^-1^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^100^0^161^0^0^-150^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^100^0^0^0^0^0^0^0^0^0^0^0^0^0^-150^100^-150^-99^7^65^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^0^1^0^0^0^0^0^0^-1^0^0^0^1^0^0^1^1^^0",
@@ -58,16 +81,331 @@ def test_read_config_files():
             return self.deserialize(read_result)
 
     test_file_path = Path("whatever")
-    test_config_files = ["test_valid"]
 
     expected = {
         "test_valid": config_file(
             "test_valid", "whatever/test_valid.json", {"foo": {"bar": "baz"}}
         )
     }
-    actual = read_config_files(test_file_path, test_config_files, TestJSONFileHandler)
+    actual = read_config_files(test_file_path, TestJSONFileHandler)
 
     assert actual == expected
+
+
+character_file_contents = r"""{
+  "char_logs": {
+    "SOANDSO_P1999Green": {
+      "char": "SOANDSO",
+      "char_state": {
+        "bind": "Lake of Ill Omen",
+        "class": "Druid",
+        "direction": "East",
+        "encumbered": false,
+        "guild": null,
+        "level": 60,
+        "location": {
+          "x": -2554.12,
+          "y": 1947.01,
+          "z": -6.19
+        },
+        "zone": "Everfrost"
+      },
+      "character": "SOANDSO",
+      "disabled": false,
+      "file_name": "eqlog_SOANDSO_P1999Green.txt",
+      "server": "P1999Green"
+    },
+    "FULANO_P1999Green": {
+      "char": "FULANO",
+      "char_state": {
+        "bind": null,
+        "class": "Necromancer",
+        "direction": "North",
+        "encumbered": false,
+        "guild": "Redacted",
+        "level": 1,
+        "location": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "zone": "Kurn's Tower"
+      },
+      "character": "FULANO",
+      "disabled": false,
+      "file_name": "eqlog_FULANO_P1999Green.txt",
+      "server": "P1999Green"
+    }
+  },
+  "version": "3.7.2"
+}
+"""
+character_file_parsed = Characters(
+    **{
+        "char_logs": {
+            "SOANDSO_P1999Green": CharacterLog(
+                **{
+                    "char": "SOANDSO",
+                    "char_state": CharacterState(
+                        **{
+                            "bind": "Lake of Ill Omen",
+                            "class": "Druid",
+                            "direction": "East",
+                            "encumbered": False,
+                            "guild": None,
+                            "level": 60,
+                            "location": Location(
+                                **{"x": -2554.12, "y": 1947.01, "z": -6.19}
+                            ),
+                            "zone": "Everfrost",
+                        }
+                    ),
+                    "character": "SOANDSO",
+                    "disabled": False,
+                    "file_name": "eqlog_SOANDSO_P1999Green.txt",
+                    "server": "P1999Green",
+                }
+            ),
+            "FULANO_P1999Green": CharacterLog(
+                **{
+                    "char": "FULANO",
+                    "char_state": CharacterState(
+                        **{
+                            "bind": None,
+                            "class": "Necromancer",
+                            "direction": "North",
+                            "encumbered": False,
+                            "guild": "Redacted",
+                            "level": 1,
+                            "location": Location(**{"x": 0.0, "y": 0.0, "z": 0.0}),
+                            "zone": "Kurn's Tower",
+                        }
+                    ),
+                    "character": "FULANO",
+                    "disabled": False,
+                    "file_name": "eqlog_FULANO_P1999Green.txt",
+                    "server": "P1999Green",
+                }
+            ),
+        }
+    }
+)
+settings_file_contents = r"""{
+  "last_state": {
+    "afk": false,
+    "character": "FULANO",
+    "group": false,
+    "leader": false,
+    "raid": false,
+    "server": "P1999Green"
+  },
+  "settings": {
+    "character_mention_alert": {
+      "enabled": true
+    },
+    "consider_eval": {
+      "enabled": true
+    },
+    "debug_mode": {
+      "enabled": false
+    },
+    "detect_character": {
+      "enabled": true
+    },
+    "encounter_parsing": {
+      "allow_player_target": false,
+      "auto_save": false,
+      "enabled": true
+    },
+    "mute": {
+      "enabled": false
+    },
+    "paths": {
+      "data": "/home/somedude/.eqa/data/",
+      "eqalert_log": "/home/somedude/.eqa/log/",
+      "everquest_files": "/home/somedude/.wine/drive_c/Program Files/Sony/EverQuest/",
+      "everquest_logs": "/home/somedude/.wine/drive_c/Program Files/Sony/EverQuest/Logs/",
+      "sound": "/home/somedude/.eqa/sound/",
+      "tmp_sound": "/tmp/eqa/sound/"
+    },
+    "player_data": {
+      "persist": true
+    },
+    "raid_mode": {
+      "auto_set": true
+    },
+    "speech": {
+      "expand_lingo": true,
+      "gtts_lang": "en",
+      "gtts_tld": "com",
+      "local_tts": {
+        "enabled": false,
+        "model": "tts_models/en/ljspeech/tacotron2-DDC_ph"
+      }
+    },
+    "timers": {
+      "mob": {
+        "auto": true,
+        "auto_delay": 10
+      },
+      "spell": {
+        "consolidate": true,
+        "delay": 24,
+        "filter": {
+          "by_list": false,
+          "filter_list": {
+            "spirit_of_wolf": false
+          },
+          "guild_only": false,
+          "yours_only": false
+        },
+        "guess": false,
+        "other": true,
+        "self": true,
+        "zone_drift": true
+      }
+    }
+  },
+  "version": "3.7.2"
+}"""
+settings_file_parsed = Settings(
+    **{
+        "last_state": LastState(
+            **{
+                "afk": False,
+                "character": "FULANO",
+                "group": False,
+                "leader": False,
+                "raid": False,
+                "server": "P1999Green",
+            }
+        ),
+        "settings": SettingData(
+            **{
+                "character_mention_alert": BaseFlag(**{"enabled": True}),
+                "consider_eval": BaseFlag(**{"enabled": True}),
+                "debug_mode": BaseFlag(**{"enabled": False}),
+                "detect_character": BaseFlag(**{"enabled": True}),
+                "encounter_parsing": EncounterParsing(
+                    **{
+                        "allow_player_target": False,
+                        "auto_save": False,
+                        "enabled": True,
+                    }
+                ),
+                "mute": BaseFlag(**{"enabled": False}),
+                "paths": SystemPaths(
+                    **{
+                        "data": "/home/somedude/.eqa/data/",
+                        "eqalert_log": "/home/somedude/.eqa/log/",
+                        "everquest_files": "/home/somedude/.wine/drive_c/Program Files/Sony/EverQuest/",
+                        "everquest_logs": "/home/somedude/.wine/drive_c/Program Files/Sony/EverQuest/Logs/",
+                        "sound": "/home/somedude/.eqa/sound/",
+                        "tmp_sound": "/tmp/eqa/sound/",
+                    }
+                ),
+                "player_data": PlayerData(**{"persist": True}),
+                "raid_mode": RaidMode(**{"auto_set": True}),
+                "speech": Speech(
+                    **{
+                        "expand_lingo": True,
+                        "gtts_lang": "en",
+                        "gtts_tld": "com",
+                        "local_tts": LocalTTS(
+                            **{
+                                "enabled": False,
+                                "model": "tts_models/en/ljspeech/tacotron2-DDC_ph",
+                            }
+                        ),
+                    }
+                ),
+                "timers": Timers(
+                    **{
+                        "mob": MobTimer(**{"auto": True, "auto_delay": 10}),
+                        "spell": SpellTimerConfig(
+                            **{
+                                "consolidate": True,
+                                "delay": 24,
+                                "filter": SpellTimerFilter(
+                                    **{
+                                        "by_list": False,
+                                        "filter_list": {"spirit_of_wolf": False},
+                                        "guild_only": False,
+                                        "yours_only": False,
+                                    }
+                                ),
+                                "guess": False,
+                                "other": True,
+                                "self": True,
+                                "zone_drift": True,
+                            }
+                        ),
+                    }
+                ),
+            }
+        ),
+        "version": "3.7.2",
+    }
+)
+zones_file_contents = r"""{
+  "zones": {
+    "An Arena (PVP) Area": {
+      "indoors": false,
+      "raid_mode": false,
+      "timer": 0
+    },
+    "Befallen": {
+      "indoors": false,
+      "raid_mode": false,
+      "timer": 1120
+    }
+  },
+  "version": "3.7.2"
+}"""
+zones_file_parsed = Zones(
+    **{
+        "zones": {
+            "An Arena (PVP) Area": Zone(
+                **{"indoors": False, "raid_mode": False, "timer": 0}
+            ),
+            "Befallen": Zone(**{"indoors": False, "raid_mode": False, "timer": 1120}),
+        }
+    }
+)
+
+
+@pytest.mark.parametrize(
+    "config_type, file_contents, expected",
+    [
+        (Characters, character_file_contents, character_file_parsed),
+        (Zones, zones_file_contents, zones_file_parsed),
+        (Settings, settings_file_contents, settings_file_parsed),
+    ],
+)
+def test_read_config_file(config_type, file_contents, expected):
+    class TestJSONFileHandler(JSONFileHandler):
+        def read(self):
+            # Short circuiting the file read operation
+            return self.deserialize(file_contents)
+
+    actual = read_config_file(Path("foo"), "whatever", config_type, TestJSONFileHandler)
+
+    assert actual == expected
+
+
+def test_read_config_file_validation_error(caplog):
+    class TestJSONFileHandler(JSONFileHandler):
+        def read(self):
+            # Short circuiting the file read operation
+            return self.deserialize('{ "foo": { "bar": "baz" }}')
+
+    with caplog.at_level(logging.INFO):
+        actual = read_config_file(
+            Path("foo"), "NoWhammies", Characters, TestJSONFileHandler
+        )
+
+    assert actual is None  # Error should get handled by error handler
+    assert "NoWhammies" in caplog.text  # Error is registered to the logger
 
 
 @pytest.mark.parametrize(

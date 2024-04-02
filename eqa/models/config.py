@@ -1,14 +1,14 @@
 from pathlib import Path
 from typing import Dict, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from eqa.models.util import BaseFlag, Location
 
 
 class CharacterState(BaseModel):
     bind: str | None
-    char_class: str | None
+    char_class: str | None = Field(..., alias="class")
     direction: str | None
     encumbered: bool
     guild: str | None
@@ -22,12 +22,12 @@ class CharacterLog(BaseModel):
     char_state: CharacterState
     character: str
     disabled: bool
-    filename: str
+    filename: str = Field(..., alias="file_name")
     server: str
 
 
 class Characters(BaseModel):
-    character_logs: Optional[Dict[str, CharacterLog]]
+    char_logs: Optional[Dict[str, CharacterLog]]
 
 
 class LastState(BaseModel):
@@ -81,15 +81,15 @@ class SpellTimerFilter(BaseModel):
     by_list: bool
     guild_only: bool
     yours_only: bool
-    filter_list: Optional[Dict[str, BaseFlag]]
+    filter_list: Optional[Dict[str, bool]]
 
 
-class SpellTimer(BaseModel):
+class SpellTimerConfig(BaseModel):
     """Generic Spell Timer data to config the behavior of the Spell Timer in EQA"""
 
     consolidate: bool
     delay: int
-    spell_timer_filter: SpellTimerFilter
+    spell_timer_filter: SpellTimerFilter = Field(..., alias="filter")
     guess: bool
     other: bool
     self: bool
@@ -98,7 +98,7 @@ class SpellTimer(BaseModel):
 
 class Timers(BaseModel):
     mob: MobTimer
-    spell: SpellTimer
+    spell: SpellTimerConfig
 
 
 class SettingData(BaseModel):
