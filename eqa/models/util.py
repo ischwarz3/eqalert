@@ -1,14 +1,11 @@
-from dataclasses import dataclass, field
-from typing import Dict
+from pydantic import BaseModel
 
 
-@dataclass
-class Location:
+class Location(BaseModel):
     x: float
     y: float
     z: float
 
 
-@dataclass
-class BaseFlag:
+class BaseFlag(BaseModel):
     enabled: bool

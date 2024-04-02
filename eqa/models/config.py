@@ -1,12 +1,12 @@
-from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
+
+from pydantic import BaseModel
 
 from eqa.models.util import BaseFlag, Location
 
 
-@dataclass
-class CharacterState:
+class CharacterState(BaseModel):
     bind: str | None
     char_class: str | None
     direction: str | None
@@ -17,8 +17,7 @@ class CharacterState:
     zone: str | None
 
 
-@dataclass
-class CharacterLog:
+class CharacterLog(BaseModel):
     char: str
     char_state: CharacterState
     character: str
@@ -27,15 +26,11 @@ class CharacterLog:
     server: str
 
 
-@dataclass
-class Character:
-    character_logs: Dict[str, CharacterLog] = field(
-        default_factory=lambda: {}, compare=False
-    )
+class Character(BaseModel):
+    character_logs: Optional[Dict[str, CharacterLog]]
 
 
-@dataclass
-class LastState:
+class LastState(BaseModel):
     afk: bool
     character: str
     group: bool
@@ -44,14 +39,12 @@ class LastState:
     server: str
 
 
-@dataclass
 class EncounterParsing(BaseFlag):
     allow_player_target: bool
     auto_save: bool
 
 
-@dataclass
-class SystemPaths:
+class SystemPaths(BaseModel):
     data: str | Path
     eqalert_log: str | Path
     everquest_files: str | Path
@@ -60,45 +53,38 @@ class SystemPaths:
     tmp_sound: str | Path
 
 
-@dataclass
-class PlayerData:
+class PlayerData(BaseModel):
     persist: bool
 
 
-@dataclass
-class RaidMode:
+class RaidMode(BaseModel):
     auto_set: bool
 
 
-@dataclass
 class LocalTTS(BaseFlag):
     model: str
 
 
-@dataclass
-class Speech:
+class Speech(BaseModel):
     expand_lingo: bool
     gtts_lang: str
     gtts_tld: str
     local_tts: LocalTTS
 
 
-@dataclass
-class MobTimer:
+class MobTimer(BaseModel):
     auto: bool
     auto_delay: int
 
 
-@dataclass
-class SpellTimerFilter:
+class SpellTimerFilter(BaseModel):
     by_list: bool
     guild_only: bool
     yours_only: bool
-    filter_list: Dict[str, BaseFlag] = field(default_factory=lambda: {}, compare=False)
+    filter_list: Optional[Dict[str, BaseFlag]]
 
 
-@dataclass
-class SpellTimer:
+class SpellTimer(BaseModel):
     """Generic Spell Timer data to config the behavior of the Spell Timer in EQA"""
 
     consolidate: bool
@@ -110,14 +96,12 @@ class SpellTimer:
     zone_drift: bool
 
 
-@dataclass
-class Timers:
+class Timers(BaseModel):
     mob: MobTimer
     spell: SpellTimer
 
 
-@dataclass
-class Settings:
+class Settings(BaseModel):
     character_mention_alert: BaseFlag
     consider_eval: BaseFlag
     debug_mode: BaseFlag
@@ -131,47 +115,38 @@ class Settings:
     timers: Timers
 
 
-@dataclass
-class Setting:
+class Setting(BaseModel):
     last_state: LastState
     settings: Settings
     version: str
 
 
-@dataclass
-class Zone:
+class Zone(BaseModel):
     indoors: bool
     raid_mode: bool
     timer: int
 
 
-@dataclass
-class Zones:
-    zones: Dict[str, Zone] = field(default_factory=lambda: {}, compare=False)
+class Zones(BaseModel):
+    zones: Optional[Dict[str, Zone]]
 
 
-@dataclass
-class LineAlert:
+class LineAlert(BaseModel):
     reaction: str
     sound: bool
-    alert: Dict[str, str] = field(default_factory=lambda: {}, compare=False)
+    alert: Optional[Dict[str, str]]
 
 
-@dataclass
-class LineAlerts:
-    line: Dict[str, LineAlert] = field(default_factory=lambda: {}, compare=False)
+class LineAlerts(BaseModel):
+    line: Optional[Dict[str, LineAlert]]
 
 
-@dataclass
-class LineAlertFile:
+class LineAlertFile(BaseModel):
     line_alert: LineAlerts
 
 
-@dataclass
-class Config:
-    characters: Character
-    settings: Setting
-    zones: Zones
-    line_alerts: Dict[str, LineAlertFile] = field(
-        default_factory=lambda: {}, compare=False
-    )
+class Config(BaseModel):
+    characters: Optional[Character]
+    settings: Optional[Setting]
+    zones: Optional[Zones]
+    line_alerts: Optional[Dict[str, LineAlertFile]]
